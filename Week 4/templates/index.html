@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spanish Language Listening Comprehension</title>
+    <!-- 
+    Styles for the application
+    - Uses a clean, modern design
+    - Responsive layout with max-width container
+    - Consistent color scheme for better UX
+    - Clear visual feedback for interactive elements
+    -->
+    <style>
+        /* Main layout and typography */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        /* Container styling with shadow for depth */
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Header styling */
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        /* Exercise container styling */
+        .exercise-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+        }
+        
+        /* Text styling for Spanish content */
+        .spanish-text {
+            font-size: 1.2em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        /* Question styling */
+        .question {
+            color: #7f8c8d;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        
+        /* Button styling */
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        /* Recording state indicator */
+        .recording {
+            background-color: #e74c3c !important;
+        }
+        
+        /* Results display */
+        #transcriptionResult {
+            margin-top: 20px;
+            padding: 10px;
+            border-left: 4px solid #3498db;
+            background-color: #f8f9fa;
+        }
+        
+        /* Status message styling */
+        .status-message {
+            color: #7f8c8d;
+            font-style: italic;
+            margin-top: 10px;
+        }
+        
+        /* Control buttons container */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Spanish Language Listening Comprehension</h1>
+        
+        <!-- Exercise display area -->
+        <div id="exerciseContainer" class="exercise-container">
+            <!-- Exercise content will be dynamically loaded here -->
+        </div>
+
+        <!-- Control buttons -->
+        <div class="controls">
+            <button id="playButton">
+                Play Audio
+            </button>
+            <button id="recordButton">
+                Start Recording
+            </button>
+            <button id="nextButton">
+                Next Exercise
+            </button>
+        </div>
+
+        <!-- Results and status display -->
+        <div id="transcriptionResult"></div>
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script>
+        // Global variables for managing audio state and exercises
+        let mediaRecorder;
+        let audioChunks = [];
+        let currentExercise;
+        let exercises = [];
+        let currentExerciseIndex = 0;
+
+        /**
+         * Initialize the application by fetching exercises
+         * Loads exercise data from the server when the page loads
+         */
+        fetch('/exercises')
+            .then(response => response.json())
+            .then(data => {
+                exercises = data;
+                displayCurrentExercise();
+            })
+            .catch(error => console.error('Error fetching exercises:', error));
+
+        /**
+         * Display the current exercise in the UI
+         * Updates the exercise text and question in the exercise container
+         */
+        function displayCurrentExercise() {
+            currentExercise = exercises[currentExerciseIndex];
+            const container = document.getElementById('exerciseContainer');
+            container.innerHTML = `
+                <div class="spanish-text">${currentExercise.text}</div>
+                <div class="question">${currentExercise.question}</div>
+            `;
+        }
+
+        /**
+         * Event handler for the Next Exercise button
+         * Advances to the next exercise and resets the transcription display
+         */
+        document.getElementById('nextButton').addEventListener('click', () => {
+            currentExerciseIndex = (currentExerciseIndex + 1) % exercises.length;
+            displayCurrentExercise();
+            document.getElementById('transcriptionResult').innerHTML = '';
+        });
+
+        /**
+         * Event handler for the Play Audio button
+         * Sends text to server for speech synthesis and plays the returned audio
+         */
+        document.getElementById('playButton').addEventListener('click', async () => {
+            const button = document.getElementById('playButton');
+            button.disabled = true;
+            
+            try {
+                const response = await fetch('/synthesize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: currentExercise.text })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const audio = new Audio(URL.createObjectURL(blob));
+                    audio.onended = () => {
+                        button.disabled = false;
+                    };
+                    audio.play();
+                } else {
+                    console.error('Error synthesizing speech');
+                    button.disabled = false;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                button.disabled = false;
+            }
+        });
+
+        /**
+         * Event handler for the Record button
+         * Manages audio recording state and sends recorded audio for transcription
+         * 
+         * Features:
+         * - Toggles between recording start/stop
+         * - Handles microphone access
+         * - Processes recorded audio
+         * - Displays transcription results
+         */
+        document.getElementById('recordButton').addEventListener('click', async () => {
+            const button = document.getElementById('recordButton');
+            const statusMessage = document.getElementById('statusMessage');
+
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                try {
+                    // Start new recording
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    // Collect audio data
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    // Handle recording completion
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        const formData = new FormData();
+                        formData.append('audio', audioBlob);
+
+                        statusMessage.textContent = 'Transcribing...';
+                        
+                        try {
+                            // Send audio for transcription
+                            const response = await fetch('/transcribe', {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            if (response.ok) {
+                                const result = await response.json();
+                                document.getElementById('transcriptionResult').innerHTML = `
+                                    <strong>Your response:</strong> ${result.text}<br>
+                                    <strong>Correct answer:</strong> ${currentExercise.answer}
+                                `;
+                                statusMessage.textContent = '';
+                            } else {
+                                const error = await response.json();
+                                statusMessage.textContent = `Error: ${error.error}`;
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            statusMessage.textContent = 'Error processing audio';
+                        }
+                    };
+
+                    // Start recording
+                    mediaRecorder.start();
+                    button.textContent = 'Stop Recording';
+                    button.classList.add('recording');
+                    statusMessage.textContent = 'Recording...';
+                } catch (error) {
+                    console.error('Error accessing microphone:', error);
+                    statusMessage.textContent = 'Error accessing microphone';
+                }
+            } else {
+                // Stop recording
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                button.textContent = 'Start Recording';
+                button.classList.remove('recording');
+            }
+        });
+    </script>
+</body>
+</html>
