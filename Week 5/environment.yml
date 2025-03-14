@@ -1,0 +1,10 @@
+name: animal_game
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pygame
+  - pip
+  - pip:
+    - gtts==2.4.0
