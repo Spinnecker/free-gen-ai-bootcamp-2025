@@ -1,0 +1,125 @@
+{
+    "rooms": {
+        "entrance": {
+            "name": "Entrada del Castillo",
+            "description_es": "Te encuentras en la entrada de un castillo antiguo. Las paredes están cubiertas de musgo y hay antorchas apagadas.",
+            "description_en": "[Reference] You are at the entrance of an ancient castle. The walls are covered in moss and there are unlit torches.",
+            "objects": [
+                {
+                    "name_es": "antorcha",
+                    "name_en": "[Reference] torch",
+                    "x": 100,
+                    "y": 200,
+                    "width": 50,
+                    "height": 100,
+                    "interactions": {
+                        "examinar": {
+                            "text_es": "Una antorcha antigua. Parece que se puede encender.",
+                            "text_en": "[Reference] An old torch. It looks like it can be lit."
+                        },
+                        "encender": {
+                            "text_es": "Necesitas encontrar algo para encenderla.",
+                            "text_en": "[Reference] You need to find something to light it."
+                        }
+                    },
+                    "puzzle": {
+                        "id": "torch_puzzle",
+                        "required_item": "cerillas",
+                        "hint_es": "Necesitas encontrar algo para encender la antorcha.",
+                        "hint_en": "[Reference] You need to find something to light the torch.",
+                        "success_es": "¡Has encendido la antorcha! La luz revela una puerta secreta.",
+                        "success_en": "[Reference] You lit the torch! The light reveals a secret door.",
+                        "reward": "llave_biblioteca"
+                    }
+                },
+                {
+                    "name_es": "puerta",
+                    "name_en": "[Reference] door",
+                    "x": 350,
+                    "y": 150,
+                    "width": 100,
+                    "height": 200,
+                    "interactions": {
+                        "abrir": {
+                            "text_es": "La puerta está cerrada con llave.",
+                            "text_en": "[Reference] The door is locked."
+                        },
+                        "examinar": {
+                            "text_es": "Una puerta de madera antigua con una cerradura dorada.",
+                            "text_en": "[Reference] An old wooden door with a golden lock."
+                        }
+                    }
+                },
+                {
+                    "name_es": "mesa",
+                    "name_en": "[Reference] table",
+                    "x": 600,
+                    "y": 300,
+                    "width": 80,
+                    "height": 60,
+                    "interactions": {
+                        "examinar": {
+                            "text_es": "Una mesa pequeña con un cajón.",
+                            "text_en": "[Reference] A small table with a drawer."
+                        },
+                        "abrir": {
+                            "text_es": "¡Has encontrado una caja de cerillas!",
+                            "text_en": "[Reference] You found a box of matches!"
+                        }
+                    },
+                    "puzzle": {
+                        "id": "table_puzzle",
+                        "hint_es": "El cajón parece estar sin cerrar.",
+                        "hint_en": "[Reference] The drawer seems to be unlocked.",
+                        "success_es": "¡Has encontrado una caja de cerillas!",
+                        "success_en": "[Reference] You found a box of matches!",
+                        "reward": "cerillas"
+                    }
+                }
+            ]
+        },
+        "biblioteca": {
+            "name": "Biblioteca Antigua",
+            "description_es": "Una biblioteca polvorienta llena de libros antiguos. Hay símbolos mágicos en las paredes.",
+            "description_en": "[Reference] A dusty library filled with ancient books. There are magical symbols on the walls.",
+            "objects": [
+                {
+                    "name_es": "libro_hechizos",
+                    "name_en": "[Reference] spellbook",
+                    "x": 200,
+                    "y": 250,
+                    "width": 60,
+                    "height": 40,
+                    "interactions": {
+                        "examinar": {
+                            "text_es": "Un libro antiguo de hechizos. La primera página muestra el hechizo 'iluminar'.",
+                            "text_en": "[Reference] An ancient spellbook. The first page shows the spell 'iluminar'."
+                        },
+                        "leer": {
+                            "text_es": "El libro dice: 'Para iluminar una habitación oscura, di 'iluminar sala'.",
+                            "text_en": "[Reference] The book says: 'To illuminate a dark room, say 'iluminar sala'."
+                        }
+                    }
+                },
+                {
+                    "name_es": "simbolos",
+                    "name_en": "[Reference] symbols",
+                    "x": 50,
+                    "y": 100,
+                    "width": 150,
+                    "height": 100,
+                    "interactions": {
+                        "examinar": {
+                            "text_es": "Símbolos mágicos que brillan tenuemente. Parecen formar una frase.",
+                            "text_en": "[Reference] Magical symbols that glow faintly. They seem to form a phrase."
+                        },
+                        "traducir": {
+                            "text_es": "Los símbolos dicen: 'La luz revela el camino'.",
+                            "text_en": "[Reference] The symbols say: 'Light reveals the way'."
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
